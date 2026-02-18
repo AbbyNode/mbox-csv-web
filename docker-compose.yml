@@ -8,3 +8,9 @@ services:
     restart: unless-stopped
     volumes:
       - /tmp:/tmp
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    command: tunnel --url http://web:5000
+    depends_on:
+      - web
+    restart: unless-stopped
