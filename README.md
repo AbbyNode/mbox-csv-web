@@ -24,8 +24,16 @@ The converter extracts the following fields from emails:
 
 The easiest way to run the application is using Docker Compose:
 
+1. Copy the example environment file:
 ```bash
-docker-compose up
+cp .env.example .env
+```
+
+2. Edit `.env` and set a secure SECRET_KEY
+
+3. Start the application:
+```bash
+docker compose up
 ```
 
 Then open your browser and navigate to `http://localhost:5000`

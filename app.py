@@ -2,11 +2,16 @@ import os
 import mailbox
 import csv
 import io
+import logging
 from flask import Flask, render_template, request, send_file, flash, redirect, url_for
 from werkzeug.utils import secure_filename
 from email.utils import parsedate_to_datetime
 from email.header import decode_header
 import tempfile
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'dev-secret-key-change-in-production')
@@ -118,7 +123,7 @@ def convert_mbox_to_csv(mbox_path):
             ])
         except Exception as e:
             # Log error but continue processing other messages
-            print(f"Error processing message: {e}")
+            logger.warning(f"Error processing message: {e}")
             continue
     
     output.seek(0)
@@ -134,6 +139,8 @@ def index():
 @app.route('/convert', methods=['POST'])
 def convert():
     """Handle file upload and conversion."""
+    temp_path = None
+    
     # Check if file was uploaded
     if 'file' not in request.files:
         flash('No file uploaded', 'error')
@@ -179,11 +186,13 @@ def convert():
     
     except Exception as e:
         flash(f'Error converting file: {str(e)}', 'error')
+        logger.error(f"Error converting file: {e}", exc_info=True)
         # Clean up temporary file if it exists
-        if os.path.exists(temp_path):
+        if temp_path and os.path.exists(temp_path):
             os.remove(temp_path)
         return redirect(url_for('index'))
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    debug_mode = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
+    app.run(host='0.0.0.0', port=5000, debug=debug_mode)
